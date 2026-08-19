@@ -16,5 +16,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Railway/Render injectent PORT dynamiquement à chaque déploiement.
-ENTRYPOINT ["/bin/sh", "-c", "ASPNETCORE_URLS=http://+:${PORT:-8080} dotnet CorrigeTesCours.Api.dll"]
+# Render injecte PORT dynamiquement à chaque déploiement. reloadConfigOnChange=false désactive
+# le FileSystemWatcher sur appsettings.json : les conteneurs Render ont un ulimit de descripteurs
+# de fichiers trop bas pour ça (crash au démarrage sinon), et on n'a de toute façon pas besoin de
+# hot-reload de config en prod (les secrets viennent de variables d'environnement).
+ENTRYPOINT ["/bin/sh", "-c", "ASPNETCORE_URLS=http://+:${PORT:-8080} DOTNET_hostBuilder__reloadConfigOnChange=false dotnet CorrigeTesCours.Api.dll"]

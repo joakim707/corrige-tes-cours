@@ -141,9 +141,51 @@ Le fichier [render.yaml](render.yaml) décrit le service : Render le lit automat
 2. Variable d'environnement : `VITE_API_URL` = l'URL Render du backend (ex. `https://corrige-tes-cours-api.onrender.com`).
 3. Une fois l'URL Vercel connue, revenir sur Render (service → Environment) et mettre à jour `Cors__AllowedOrigins__0` avec cette URL exacte (sinon le navigateur bloquera les requêtes en CORS).
 
-### CI
+## Tests
 
-[.github/workflows/ci.yml](.github/workflows/ci.yml) build le backend et le frontend à chaque push/PR sur `main` — c'est une vérification, pas un déploiement (Railway/Vercel s'en chargent nativement via leur intégration GitHub).
+```bash
+# Backend (xUnit — logique métier pure : correction de quiz, hachage mot de passe, signature de fichiers)
+cd backend
+dotnet test
+
+# Frontend (Vitest + ESLint)
+cd frontend
+npm run lint
+npm run test
+```
+
+## CI/CD
+
+[.github/workflows/ci.yml](.github/workflows/ci.yml) s'exécute à chaque push/PR sur `main` :
+
+1. **Job `backend`** — restore, build, `dotnet test` (résultats publiés en artifact).
+2. **Job `frontend`** — `npm ci`, lint (ESLint), tests (Vitest), build (`tsc` + Vite).
+3. **Job `deploy`** — ne se déclenche que sur un push direct sur `main`, et seulement si `backend` et `frontend` ont réussi. Il déclenche les *Deploy Hooks* Render/Vercel via `curl` (URLs stockées en secrets GitHub `RENDER_DEPLOY_HOOK_URL` / `VERCEL_DEPLOY_HOOK_URL`).
+
+**Pour que le déploiement soit réellement conditionné aux tests** (et pas juste déclenché en parallèle par l'auto-deploy natif de Render/Vercel sur push GitHub) :
+
+1. Render → service → Settings → **Auto-Deploy** → désactiver. Puis Settings → **Deploy Hook** → copier l'URL.
+2. Vercel → projet → Settings → Git → désactiver le déploiement automatique sur push (ou limiter aux preview). Puis Settings → Git → **Deploy Hooks** → en créer un pour `main`.
+3. GitHub repo → Settings → Secrets and variables → Actions → ajouter `RENDER_DEPLOY_HOOK_URL` et `VERCEL_DEPLOY_HOOK_URL` avec ces URLs.
+
+Sans cette étape, Render/Vercel redéploient quand même automatiquement sur chaque push (comportement par défaut), en parallèle de la CI plutôt qu'après elle — la CI reste alors une vérification de qualité mais ne bloque pas techniquement un déploiement cassé. Pour un gate strict au niveau GitHub (bloquer le merge d'une PR si la CI échoue), ajouter une **branch protection rule** sur `main` (Settings → Branches → Require status checks to pass) exigeant les jobs `backend` et `frontend`.
+
+## Sécurité
+
+- **Secrets** — clé OpenRouter, secret JWT, connection string Postgres : jamais commités, jamais en dur dans le code. En local via `dotnet user-secrets` ; en production via les variables d'environnement Render/Vercel. `.gitignore` exclut `.env*` et `appsettings.Local.json`.
+- **Mots de passe** — hashés avec BCrypt (work factor 12), jamais stockés ni loggés en clair.
+- **CORS** — origines explicitement whitelistées via `Cors:AllowedOrigins` (pas de wildcard `*`), avec `AllowCredentials` pour le cookie de refresh token.
+- **HTTPS** — forcé de bout en bout : `UseHttpsRedirection()` + `UseHsts()` en production côté API ; Vercel sert le frontend exclusivement en HTTPS (SSL auto, redirection HTTP→HTTPS native). Le backend est derrière le proxy TLS de Render — `ForwardedHeaders` restaure le schéma HTTPS réel dans `Request.Scheme` pour que cookies `Secure` et HSTS fonctionnent correctement.
+- **Headers de sécurité** — `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` restrictive, appliqués à toutes les réponses (voir middleware dans `Program.cs`).
+- **Rate limiting** — 10 req/min/IP sur `/api/auth/*` (anti brute-force).
+- **Erreurs** — page de diagnostic détaillée uniquement en `Development` ; en production, réponse générique sans stack trace (l'exception complète est loggée côté serveur, jamais exposée au client).
+- **Uploads** — extension whitelistée + vérification de la signature binaire réelle du fichier (magic bytes), taille max 15 Mo.
+- **Sessions** — JWT 15 min, refresh token 7 jours en cookie `HttpOnly` + `Secure` + rotation à chaque usage ; seul le hash SHA-256 du refresh token est persisté.
+
+## Observabilité
+
+- **Logging structuré** — Serilog en sortie JSON sur stdout (capturé nativement par le viewer de logs Render). Chaque requête HTTP génère une ligne structurée (méthode, route, status, durée, trace ID) via `UseSerilogRequestLogging()`. Le bruit des logs EF Core/ASP.NET internes est filtré à `Warning` pour ne garder que le pertinent.
+- **Suivi d'erreurs** — intégration Sentry prête à l'emploi (`Sentry.AspNetCore`), activée uniquement si `Sentry:Dsn` est configuré (sinon no-op silencieux, aucun impact). Pour l'activer : créer un projet sur [sentry.io](https://sentry.io) et définir la variable d'environnement `Sentry__Dsn` sur Render.
 
 ## Suite de la roadmap
 

@@ -22,6 +22,16 @@ jobs:
       - name: Build
         run: dotnet build backend/CorrigeTesCours.sln --no-restore -c Release
 
+      - name: Test
+        run: dotnet test backend/CorrigeTesCours.sln --no-build -c Release --logger "trx" --results-directory ./test-results
+
+      - name: Publier les résultats de test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: ./test-results
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -39,5 +49,30 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
       - name: Build
         run: npm run build
+
+  # Gate de déploiement : Render/Vercel ne déploient qu'après succès de ces deux jobs
+  # (Deploy Hooks déclenchés ici, Auto-Deploy désactivé côté Render/Vercel — voir README).
+  deploy:
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Déclencher le déploiement Render
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+      - name: Déclencher le déploiement Vercel
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        if: env.VERCEL_DEPLOY_HOOK_URL != ''
+        run: curl -fsS -X POST "$VERCEL_DEPLOY_HOOK_URL"

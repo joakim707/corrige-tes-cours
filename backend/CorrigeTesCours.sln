@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorrigeTesCours.Domain", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorrigeTesCours.Infrastructure", "src\CorrigeTesCours.Infrastructure\CorrigeTesCours.Infrastructure.csproj", "{D099E5E3-A6A5-48A5-8724-E4BC98E1AD6B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2C14B073-F4BD-4714-98BB-2EC4904962DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorrigeTesCours.Api.Tests", "tests\CorrigeTesCours.Api.Tests\CorrigeTesCours.Api.Tests.csproj", "{21AB0616-E2F9-4318-B180-FCE5E1012D54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,10 +36,15 @@ Global
 		{D099E5E3-A6A5-48A5-8724-E4BC98E1AD6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D099E5E3-A6A5-48A5-8724-E4BC98E1AD6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D099E5E3-A6A5-48A5-8724-E4BC98E1AD6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21AB0616-E2F9-4318-B180-FCE5E1012D54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21AB0616-E2F9-4318-B180-FCE5E1012D54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21AB0616-E2F9-4318-B180-FCE5E1012D54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21AB0616-E2F9-4318-B180-FCE5E1012D54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C59A9C2F-F0C7-4122-A706-D89973974336} = {C5370274-44C6-4DD7-AC61-E34F97FDD7A8}
 		{C863AD76-0929-4160-90FD-316EE620CFE0} = {C5370274-44C6-4DD7-AC61-E34F97FDD7A8}
 		{D099E5E3-A6A5-48A5-8724-E4BC98E1AD6B} = {C5370274-44C6-4DD7-AC61-E34F97FDD7A8}
+		{21AB0616-E2F9-4318-B180-FCE5E1012D54} = {2C14B073-F4BD-4714-98BB-2EC4904962DA}
 	EndGlobalSection
 EndGlobal

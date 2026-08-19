@@ -1,5 +1,5 @@
-# Contexte de build attendu : la racine du repo (railway.json pointe dockerfilePath sur backend/Dockerfile
-# sans changer le "Root Directory" du service, donc tous les chemins sont préfixés par backend/).
+# Dockerfile à la racine du repo : Railway (et la plupart des PaaS) le détectent
+# automatiquement, sans dépendre d'un réglage "Root Directory" dans leur UI.
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 

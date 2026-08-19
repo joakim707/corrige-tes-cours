@@ -117,7 +117,7 @@ Auth (`/api/auth/*`), `users/me`, `matieres`, `corrections`, `fiches` (+ export 
 ### Backend — Railway
 
 1. Sur [railway.app](https://railway.app), **New Project → Deploy from GitHub repo** et sélectionne ce dépôt.
-2. Dans les settings du service, **Root Directory** → `backend` (c'est là que se trouve le `Dockerfile`, qui construit toute la solution depuis ce contexte).
+2. Rien à toucher côté Root Directory : le `Dockerfile` est à la racine du repo (détecté automatiquement par Railway) et [railway.json](../railway.json) force explicitement le builder Dockerfile en config-as-code, pour ne pas dépendre des réglages UI.
 3. Variables d'environnement à définir sur le service (Settings → Variables) :
 
    | Variable | Valeur |

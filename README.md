@@ -114,30 +114,32 @@ Auth (`/api/auth/*`), `users/me`, `matieres`, `corrections`, `fiches` (+ export 
 
 ## Déploiement
 
-### Backend — Railway
+### Backend — Render (Blueprint, 100% gratuit, pas de CB)
 
-1. Sur [railway.app](https://railway.app), **New Project → Deploy from GitHub repo** et sélectionne ce dépôt.
-2. Rien à toucher côté Root Directory : le `Dockerfile` est à la racine du repo (détecté automatiquement par Railway) et [railway.json](../railway.json) force explicitement le builder Dockerfile en config-as-code, pour ne pas dépendre des réglages UI.
-3. Variables d'environnement à définir sur le service (Settings → Variables) :
+Le fichier [render.yaml](render.yaml) décrit le service : Render le lit automatiquement au lieu de devoir tout cliquer à la main dans un dashboard.
+
+1. Sur [dashboard.render.com](https://dashboard.render.com), **New → Blueprint**, connecte le repo GitHub `corrige-tes-cours`.
+2. Render détecte `render.yaml` et propose de créer le service `corrige-tes-cours-api` (runtime Docker, plan free). Valide.
+3. Un formulaire demande les variables marquées `sync: false` dans `render.yaml` — à saisir une seule fois à la création :
 
    | Variable | Valeur |
    |---|---|
    | `ConnectionStrings__Postgres` | La connection string Neon (format Npgsql, voir section 1bis ci-dessus) |
    | `Jwt__Secret` | Chaîne aléatoire ≥ 32 caractères (différente de celle de dev) |
-   | `Jwt__Issuer` / `Jwt__Audience` | Peuvent rester les valeurs par défaut |
    | `Ai__ApiKey` | Clé OpenRouter |
-   | `Cors__AllowedOrigins__0` | URL du frontend déployé (ex. `https://corrige-tes-cours.vercel.app`) |
-   | `ASPNETCORE_ENVIRONMENT` | `Production` |
+   | `Cors__AllowedOrigins__0` | URL du frontend déployé (ex. `https://corrige-tes-cours.vercel.app`) — peut être mise à jour après coup une fois connue |
 
-4. Railway détecte le `Dockerfile` et build automatiquement. Le conteneur lit `$PORT` fourni par Railway (voir `ENTRYPOINT` du Dockerfile) — rien à configurer côté port.
-5. Les migrations EF sont appliquées **automatiquement au démarrage** (`Database.MigrateAsync()` dans `Program.cs`) : pas besoin d'accès shell sur Railway.
-6. Chaque `git push` sur `main` redéploie automatiquement (intégration GitHub native de Railway — pas besoin de l'ajouter dans la CI GitHub Actions).
+4. Render build l'image depuis le `Dockerfile` à la racine et lit `$PORT` dynamiquement (voir `ENTRYPOINT` du Dockerfile) — rien à configurer côté port.
+5. Les migrations EF sont appliquées **automatiquement au démarrage** (`Database.MigrateAsync()` dans `Program.cs`) : pas besoin d'accès shell.
+6. Chaque `git push` sur `main` redéploie automatiquement.
+
+⚠️ **Limite du plan free Render** : le service se met en veille après 15 min d'inactivité. La requête suivante réveille le conteneur en ~30-50s (cold start) avant de répondre normalement — normal, pas un bug.
 
 ### Frontend — Vercel (ou Netlify)
 
 1. Importer le dépôt sur [vercel.com](https://vercel.com), **Root Directory** → `frontend`, framework auto-détecté (Vite).
-2. Variable d'environnement : `VITE_API_URL` = l'URL Railway du backend (ex. `https://corrige-tes-cours-api.up.railway.app`).
-3. Une fois l'URL Vercel connue, revenir sur Railway et mettre à jour `Cors__AllowedOrigins__0` avec cette URL exacte (sinon le navigateur bloquera les requêtes en CORS).
+2. Variable d'environnement : `VITE_API_URL` = l'URL Render du backend (ex. `https://corrige-tes-cours-api.onrender.com`).
+3. Une fois l'URL Vercel connue, revenir sur Render (service → Environment) et mettre à jour `Cors__AllowedOrigins__0` avec cette URL exacte (sinon le navigateur bloquera les requêtes en CORS).
 
 ### CI
 

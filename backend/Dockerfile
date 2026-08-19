@@ -1,14 +1,15 @@
-# Contexte de build attendu : backend/ (racine de la solution)
+# Contexte de build attendu : la racine du repo (railway.json pointe dockerfilePath sur backend/Dockerfile
+# sans changer le "Root Directory" du service, donc tous les chemins sont préfixés par backend/).
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY CorrigeTesCours.sln ./
-COPY src/CorrigeTesCours.Api/CorrigeTesCours.Api.csproj src/CorrigeTesCours.Api/
-COPY src/CorrigeTesCours.Domain/CorrigeTesCours.Domain.csproj src/CorrigeTesCours.Domain/
-COPY src/CorrigeTesCours.Infrastructure/CorrigeTesCours.Infrastructure.csproj src/CorrigeTesCours.Infrastructure/
+COPY backend/CorrigeTesCours.sln ./
+COPY backend/src/CorrigeTesCours.Api/CorrigeTesCours.Api.csproj src/CorrigeTesCours.Api/
+COPY backend/src/CorrigeTesCours.Domain/CorrigeTesCours.Domain.csproj src/CorrigeTesCours.Domain/
+COPY backend/src/CorrigeTesCours.Infrastructure/CorrigeTesCours.Infrastructure.csproj src/CorrigeTesCours.Infrastructure/
 RUN dotnet restore CorrigeTesCours.sln
 
-COPY . .
+COPY backend/ .
 RUN dotnet publish src/CorrigeTesCours.Api/CorrigeTesCours.Api.csproj -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

@@ -2,3 +2,6 @@
 **/obj/
 **/*.user
 .vs/
+frontend/
+.git/
+.github/

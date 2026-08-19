@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+*.user
+
+# Node
+node_modules/
+dist/
+
+# Secrets & environnement — ne jamais commiter (clés API IA, mots de passe BDD)
+.env
+.env.local
+.env.*.local
+appsettings.Local.json
+
+# IDE
+.vs/
+.idea/
+.vscode/

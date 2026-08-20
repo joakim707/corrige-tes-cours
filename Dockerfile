@@ -3,11 +3,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY backend/CorrigeTesCours.sln ./
+# Restore juste le projet Api (et ses dépendances Domain/Infrastructure via project reference) :
+# pas besoin du .sln ni du projet de tests dans l'image runtime, les tests tournent en CI à part.
 COPY backend/src/CorrigeTesCours.Api/CorrigeTesCours.Api.csproj src/CorrigeTesCours.Api/
 COPY backend/src/CorrigeTesCours.Domain/CorrigeTesCours.Domain.csproj src/CorrigeTesCours.Domain/
 COPY backend/src/CorrigeTesCours.Infrastructure/CorrigeTesCours.Infrastructure.csproj src/CorrigeTesCours.Infrastructure/
-RUN dotnet restore CorrigeTesCours.sln
+RUN dotnet restore src/CorrigeTesCours.Api/CorrigeTesCours.Api.csproj
 
 COPY backend/ .
 RUN dotnet publish src/CorrigeTesCours.Api/CorrigeTesCours.Api.csproj -c Release -o /app/publish --no-restore

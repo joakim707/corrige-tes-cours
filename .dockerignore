@@ -3,5 +3,6 @@
 **/*.user
 .vs/
 frontend/
+backend/tests/
 .git/
 .github/

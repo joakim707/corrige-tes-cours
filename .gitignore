@@ -3,6 +3,8 @@ bin/
 obj/
 *.user
 TestResults/
+test-results/
+code-coverage-results.md
 
 # Node
 node_modules/

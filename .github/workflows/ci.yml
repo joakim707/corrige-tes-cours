@@ -22,8 +22,8 @@ jobs:
       - name: Build
         run: dotnet build backend/CorrigeTesCours.sln --no-restore -c Release
 
-      - name: Test
-        run: dotnet test backend/CorrigeTesCours.sln --no-build -c Release --logger "trx" --results-directory ./test-results
+      - name: Test + couverture
+        run: dotnet test backend/CorrigeTesCours.sln --no-build -c Release --logger "trx" --results-directory ./test-results --collect:"XPlat Code Coverage"
 
       - name: Publier les résultats de test
         if: always()
@@ -31,6 +31,19 @@ jobs:
         with:
           name: backend-test-results
           path: ./test-results
+
+      - name: Résumé de couverture dans le run
+        if: always()
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: ./test-results/**/coverage.cobertura.xml
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Ajouter le résumé au run GitHub Actions
+        if: always()
+        run: cat code-coverage-results.md >> "$GITHUB_STEP_SUMMARY"
 
   frontend:
     runs-on: ubuntu-latest
